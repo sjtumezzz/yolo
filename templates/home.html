@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YOLO Workbench</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="eyebrow">Desktop-ready workflow</div>
+        <h1>YOLO Workbench</h1>
+        <p>One workflow, three modules: annotate data, train models, run inference.</p>
+      </div>
+    </header>
+
+    <main class="cards">
+      <a class="card" href="{{ url_for('annotation_page') }}">
+        <span class="index">01</span>
+        <h2>Annotation</h2>
+        <p>Create datasets, upload images, draw boxes, and export YOLO-ready data.</p>
+      </a>
+      <a class="card" href="{{ url_for('training_page') }}">
+        <span class="index">02</span>
+        <h2>Training</h2>
+        <p>Start training tasks with configurable weights, epochs, batch size, and device.</p>
+      </a>
+      <a class="card" href="{{ url_for('inference_page') }}">
+        <span class="index">03</span>
+        <h2>Inference</h2>
+        <p>Upload an image or video, choose weights, run detection, inspect outputs.</p>
+      </a>
+    </main>
+  </body>
+</html>

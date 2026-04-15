@@ -1,0 +1,5 @@
+train: ../datasets/spot/train/images
+val: ../datasets/spot/valid/images
+
+nc: 2
+names: ['good', 'bad']

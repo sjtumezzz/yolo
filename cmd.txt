@@ -1,0 +1,19 @@
+training:
+python train.py --img 640 --batch 8 --epochs 100 --data ./data/hat.yaml --cfg ./models/yolov5s.yaml --weights ./weights/yolov5s.pt
+
+
+inference:
+python detect.py --source file.jpg  # image 
+                           file.mp4  # video
+                           ./dir  # directory
+                           rtsp://170.93.143.139/rtplive/470011e600ef003a004ee33696235daa  # rtsp stream
+                           http://112.50.243.8/PLTV/88888888/224/3221225900/1.m3u8  # http stream
+
+
+inference:
+python detect.py --source ../spot_datasets/valid/images/ --weights ./runs/train/exp4/weights/best.pt
+
+
+
+python models/export.py --weights weights/yolov5s.pt --img 640 --batch 1
+

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Training Module</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='training.css') }}">
+  </head>
+  <body>
+    <nav class="top-nav">
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('annotation_page') }}">Annotation</a>
+      <a class="active" href="{{ url_for('training_page') }}">Training</a>
+      <a href="{{ url_for('inference_page') }}">Inference</a>
+    </nav>
+    <div class="layout">
+      <aside class="sidebar">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Training Task</h2>
+          </div>
+          <form id="trainingForm" class="stack">
+            <input id="taskName" type="text" placeholder="Task name">
+            <label>Dataset YAML<select id="datasetYaml" required></select></label>
+            <label>Initial weights<select id="weightsPath" required></select></label>
+            <label>Model cfg<select id="modelCfg" required></select></label>
+            <div class="grid-two">
+              <label>Epochs<input id="epochs" type="number" min="1" value="100"></label>
+              <label>Batch size<input id="batchSize" type="number" min="1" value="8"></label>
+            </div>
+            <div class="grid-two">
+              <label>Image size<input id="imgSize" type="number" min="32" step="32" value="640"></label>
+              <label>Device<input id="device" type="text" placeholder="cpu, 0, 0,1"></label>
+            </div>
+            <label class="checkbox">
+              <input id="resume" type="checkbox">
+              <span>Resume training</span>
+            </label>
+            <button type="submit">Start training</button>
+          </form>
+        </section>
+      </aside>
+
+      <main class="content">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Task List</h2>
+            <button id="refreshTasksBtn" class="ghost" type="button">Refresh</button>
+          </div>
+          <div id="statusBar" class="status-bar">Ready</div>
+          <div id="taskList" class="task-list"></div>
+        </section>
+
+        <section class="detail-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Task Detail</h2>
+              <button id="stopTaskBtn" class="ghost" type="button">Stop task</button>
+            </div>
+            <div id="taskDetail" class="detail-box">Select a task to view detail.</div>
+            <div id="artifactLinks" class="artifact-links"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Training Log</h2>
+              <button id="refreshLogBtn" class="ghost" type="button">Refresh log</button>
+            </div>
+            <pre id="logViewer" class="log-viewer"></pre>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='training.js') }}"></script>
+  </body>
+</html>

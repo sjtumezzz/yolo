@@ -1,0 +1,5 @@
+train: ../datasets/hat/train/images
+val: ../datasets/hat/valid/images
+
+nc: 2
+names: ['hat', 'person']
