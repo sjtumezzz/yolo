@@ -77,7 +77,7 @@ class Camera(BaseCamera):
         classify = False
         if classify:
             modelc = load_classifier(name='resnet101', n=2)  # initialize
-            modelc.load_state_dict(torch.load('weights/resnet101.pt', map_location=device)['model'])  # load weights
+            modelc.load_state_dict(torch.load('weights/resnet101.pt', map_location=device, weights_only=False)['model'])  # load weights
             modelc.to(device).eval()
 
         # Set Dataloader
