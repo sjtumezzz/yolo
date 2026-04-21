@@ -1,35 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>YOLO Workbench</title>
+    <title>YOLO 工作台</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
   </head>
   <body>
     <header class="hero">
       <div class="hero-inner">
-        <div class="eyebrow">Desktop-ready workflow</div>
-        <h1>YOLO Workbench</h1>
-        <p>One workflow, three modules: annotate data, train models, run inference.</p>
+        <div class="eyebrow">桌面端一体化流程</div>
+        <h1>YOLO 工作台</h1>
+        <p>一套流程，三个模块：数据标记、模型训练、模型推理。</p>
       </div>
     </header>
 
     <main class="cards">
       <a class="card" href="{{ url_for('annotation_page') }}">
         <span class="index">01</span>
-        <h2>Annotation</h2>
-        <p>Create datasets, upload images, draw boxes, and export YOLO-ready data.</p>
+        <h2>标记模块</h2>
+        <p>创建数据集、上传图片、绘制标注框，并导出 YOLO 训练数据。</p>
       </a>
       <a class="card" href="{{ url_for('training_page') }}">
         <span class="index">02</span>
-        <h2>Training</h2>
-        <p>Start training tasks with configurable weights, epochs, batch size, and device.</p>
+        <h2>训练模块</h2>
+        <p>选择数据集和初始权重，配置轮数、批大小、设备并启动训练。</p>
       </a>
       <a class="card" href="{{ url_for('inference_page') }}">
         <span class="index">03</span>
-        <h2>Inference</h2>
-        <p>Upload an image or video, choose weights, run detection, inspect outputs.</p>
+        <h2>推理模块</h2>
+        <p>上传图片或视频，选择权重文件，执行检测并查看输出结果。</p>
       </a>
     </main>
   </body>

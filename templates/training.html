@@ -1,42 +1,42 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Training Module</title>
+    <title>训练模块</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='training.css') }}">
   </head>
   <body>
     <nav class="top-nav">
-      <a href="{{ url_for('index') }}">Home</a>
-      <a href="{{ url_for('annotation_page') }}">Annotation</a>
-      <a class="active" href="{{ url_for('training_page') }}">Training</a>
-      <a href="{{ url_for('inference_page') }}">Inference</a>
+      <a href="{{ url_for('index') }}">首页</a>
+      <a href="{{ url_for('annotation_page') }}">标记</a>
+      <a class="active" href="{{ url_for('training_page') }}">训练</a>
+      <a href="{{ url_for('inference_page') }}">推理</a>
     </nav>
     <div class="layout">
       <aside class="sidebar">
         <section class="panel">
           <div class="panel-header">
-            <h2>Training Task</h2>
+            <h2>训练任务</h2>
           </div>
           <form id="trainingForm" class="stack">
-            <input id="taskName" type="text" placeholder="Task name">
-            <label>Dataset YAML<select id="datasetYaml" required></select></label>
-            <label>Initial weights<select id="weightsPath" required></select></label>
-            <label>Model cfg<select id="modelCfg" required></select></label>
+            <input id="taskName" type="text" placeholder="任务名称">
+            <label>数据集 YAML<select id="datasetYaml" required></select></label>
+            <label>初始权重<select id="weightsPath" required></select></label>
+            <label>模型配置<select id="modelCfg" required></select></label>
             <div class="grid-two">
-              <label>Epochs<input id="epochs" type="number" min="1" value="100"></label>
-              <label>Batch size<input id="batchSize" type="number" min="1" value="8"></label>
+              <label>训练轮数<input id="epochs" type="number" min="1" value="100"></label>
+              <label>批大小<input id="batchSize" type="number" min="1" value="8"></label>
             </div>
             <div class="grid-two">
-              <label>Image size<input id="imgSize" type="number" min="32" step="32" value="640"></label>
-              <label>Device<input id="device" type="text" placeholder="cpu, 0, 0,1"></label>
+              <label>图片尺寸<input id="imgSize" type="number" min="32" step="32" value="640"></label>
+              <label>设备<input id="device" type="text" placeholder="cpu, 0, 0,1"></label>
             </div>
             <label class="checkbox">
               <input id="resume" type="checkbox">
-              <span>Resume training</span>
+              <span>继续训练</span>
             </label>
-            <button type="submit">Start training</button>
+            <button type="submit">开始训练</button>
           </form>
         </section>
       </aside>
@@ -44,27 +44,27 @@
       <main class="content">
         <section class="panel">
           <div class="panel-header">
-            <h2>Task List</h2>
-            <button id="refreshTasksBtn" class="ghost" type="button">Refresh</button>
+            <h2>任务列表</h2>
+            <button id="refreshTasksBtn" class="ghost" type="button">刷新</button>
           </div>
-          <div id="statusBar" class="status-bar">Ready</div>
+          <div id="statusBar" class="status-bar">准备就绪</div>
           <div id="taskList" class="task-list"></div>
         </section>
 
         <section class="detail-grid">
           <section class="panel">
             <div class="panel-header">
-              <h2>Task Detail</h2>
-              <button id="stopTaskBtn" class="ghost" type="button">Stop task</button>
+              <h2>任务详情</h2>
+              <button id="stopTaskBtn" class="ghost" type="button">停止任务</button>
             </div>
-            <div id="taskDetail" class="detail-box">Select a task to view detail.</div>
+            <div id="taskDetail" class="detail-box">请选择一个任务查看详情。</div>
             <div id="artifactLinks" class="artifact-links"></div>
           </section>
 
           <section class="panel">
             <div class="panel-header">
-              <h2>Training Log</h2>
-              <button id="refreshLogBtn" class="ghost" type="button">Refresh log</button>
+              <h2>训练日志</h2>
+              <button id="refreshLogBtn" class="ghost" type="button">刷新日志</button>
             </div>
             <pre id="logViewer" class="log-viewer"></pre>
           </section>

@@ -25,6 +25,22 @@ const inferenceElements = {
   refreshLogBtn: document.getElementById("refreshLogBtn"),
   stopTaskBtn: document.getElementById("stopTaskBtn"),
 };
+const inferenceStatusText = {
+  pending: "等待中",
+  running: "运行中",
+  completed: "已完成",
+  failed: "失败",
+  stopped: "已停止",
+};
+const sourceTypeText = {
+  image: "图片",
+  video: "视频",
+};
+const weightSourceText = {
+  root: "根目录",
+  weights: "权重目录",
+  runs: "训练结果",
+};
 
 function setInferenceStatus(message, isError = false) {
   inferenceElements.statusBar.textContent = message;
@@ -35,7 +51,7 @@ async function inferenceRequest(url, options = {}) {
   const response = await fetch(url, options);
   const payload = await response.json().catch(() => null);
   if (!response.ok || !payload || payload.success === false) {
-    throw new Error(payload?.message || `Request failed: ${response.status}`);
+    throw new Error(payload?.message || `请求失败：${response.status}`);
   }
   return payload.data;
 }
@@ -45,7 +61,7 @@ function fillWeightSelect(items) {
   items.forEach((item) => {
     const option = document.createElement("option");
     option.value = item.path;
-    option.textContent = `${item.label} (${item.source})`;
+    option.textContent = `${item.label} (${weightSourceText[item.source] || item.source})`;
     inferenceElements.weightsPath.appendChild(option);
   });
 }
@@ -62,8 +78,8 @@ function renderTaskList() {
     card.className = `task-card${task.id === inferenceState.selectedTaskId ? " active" : ""}`;
     card.innerHTML = `
       <h3>${task.name}</h3>
-      <div class="meta">Status: ${task.status}</div>
-      <div class="meta">Input: ${task.source_name}</div>
+      <div class="meta">状态：${inferenceStatusText[task.status] || task.status}</div>
+      <div class="meta">输入：${task.source_name}</div>
       <div class="meta">${task.created_at}</div>
     `;
     card.addEventListener("click", () => selectTask(task.id));
@@ -73,46 +89,46 @@ function renderTaskList() {
 
 function renderTaskDetail(task) {
   if (!task) {
-    inferenceElements.taskDetail.textContent = "Select a task to view detail.";
+    inferenceElements.taskDetail.textContent = "请选择一个任务查看详情。";
     inferenceElements.artifactLinks.innerHTML = "";
-    inferenceElements.resultPreview.textContent = "Select a task to view result preview.";
+    inferenceElements.resultPreview.textContent = "请选择一个任务查看结果预览。";
     return;
   }
 
   inferenceElements.taskDetail.textContent = [
-    `Name: ${task.name}`,
-    `Status: ${task.status}`,
-    `Input file: ${task.source_name}`,
-    `Input type: ${task.source_type}`,
-    `Weights: ${task.weights}`,
-    `Image size: ${task.img_size}`,
-    `Conf: ${task.conf_thres}`,
-    `IoU: ${task.iou_thres}`,
-    `Device: ${task.device}`,
-    `Output dir: ${task.output_dir}`,
-    `Output file: ${task.output_path}`,
-    `Error: ${task.error_message || "-"}`,
+    `任务名称：${task.name}`,
+    `状态：${inferenceStatusText[task.status] || task.status}`,
+    `输入文件：${task.source_name}`,
+    `输入类型：${sourceTypeText[task.source_type] || task.source_type}`,
+    `权重：${task.weights}`,
+    `图片尺寸：${task.img_size}`,
+    `置信度：${task.conf_thres}`,
+    `IoU 阈值：${task.iou_thres}`,
+    `设备：${task.device}`,
+    `输出目录：${task.output_dir}`,
+    `输出文件：${task.output_path}`,
+    `错误信息：${task.error_message || "-"}`,
   ].join("\n");
 
   const links = [
-    `<a href="/api/inference/tasks/${task.id}/source" target="_blank" rel="noopener noreferrer">Download input file</a>`,
+    `<a href="/api/inference/tasks/${task.id}/source" target="_blank" rel="noopener noreferrer">下载输入文件</a>`,
   ];
   if (task.output_exists) {
-    links.push(`<a href="/api/inference/tasks/${task.id}/output" target="_blank" rel="noopener noreferrer">Download output file</a>`);
+    links.push(`<a href="/api/inference/tasks/${task.id}/output" target="_blank" rel="noopener noreferrer">下载输出文件</a>`);
   } else {
-    links.push(`<a class="muted">Output file not available yet</a>`);
+    links.push(`<a class="muted">输出文件暂不可用</a>`);
   }
   inferenceElements.artifactLinks.innerHTML = links.join("");
 
   if (task.output_exists) {
     const outputUrl = `/api/inference/tasks/${task.id}/output`;
     if (task.source_type === "image") {
-      inferenceElements.resultPreview.innerHTML = `<img src="${outputUrl}" alt="Inference result">`;
+      inferenceElements.resultPreview.innerHTML = `<img src="${outputUrl}" alt="推理结果">`;
     } else {
       inferenceElements.resultPreview.innerHTML = `<video controls src="${outputUrl}"></video>`;
     }
   } else {
-    inferenceElements.resultPreview.textContent = "Output file not available yet.";
+    inferenceElements.resultPreview.textContent = "输出文件暂不可用。";
   }
 }
 
@@ -149,7 +165,7 @@ async function createInferenceTask(event) {
       formData.append("save_txt", "1");
     }
     if (!inferenceElements.inputFile.files.length) {
-      throw new Error("Choose an input file first");
+      throw new Error("请先选择输入文件");
     }
     formData.append("file", inferenceElements.inputFile.files[0]);
 
@@ -159,10 +175,10 @@ async function createInferenceTask(event) {
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok || !payload || payload.success === false) {
-      throw new Error(payload?.message || "Failed to start inference");
+      throw new Error(payload?.message || "启动推理失败");
     }
 
-    setInferenceStatus("Inference task started");
+    setInferenceStatus("推理任务已启动");
     inferenceElements.inferenceForm.reset();
     inferenceElements.device.value = "cpu";
     inferenceElements.imgSize.value = "640";
@@ -202,7 +218,7 @@ inferenceElements.inferenceForm.addEventListener("submit", createInferenceTask);
 inferenceElements.refreshTasksBtn.addEventListener("click", async () => {
   try {
     await loadTaskList();
-    setInferenceStatus("Task list refreshed");
+    setInferenceStatus("任务列表已刷新");
   } catch (error) {
     setInferenceStatus(error.message, true);
   }
@@ -210,14 +226,14 @@ inferenceElements.refreshTasksBtn.addEventListener("click", async () => {
 inferenceElements.refreshLogBtn.addEventListener("click", async () => {
   try {
     await refreshSelectedTask();
-    setInferenceStatus("Log refreshed");
+    setInferenceStatus("日志已刷新");
   } catch (error) {
     setInferenceStatus(error.message, true);
   }
 });
 inferenceElements.stopTaskBtn.addEventListener("click", async () => {
   if (!inferenceState.selectedTaskId) {
-    setInferenceStatus("Select a task first", true);
+    setInferenceStatus("请先选择任务", true);
     return;
   }
   try {
@@ -226,7 +242,7 @@ inferenceElements.stopTaskBtn.addEventListener("click", async () => {
     });
     renderTaskDetail(task);
     await loadTaskList();
-    setInferenceStatus("Task stopped");
+    setInferenceStatus("任务已停止");
   } catch (error) {
     setInferenceStatus(error.message, true);
   }
@@ -237,7 +253,7 @@ inferenceElements.stopTaskBtn.addEventListener("click", async () => {
     await loadInferenceOptions();
     await loadTaskList();
     startPolling();
-    setInferenceStatus("Ready");
+    setInferenceStatus("准备就绪");
   } catch (error) {
     setInferenceStatus(error.message, true);
   }

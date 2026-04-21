@@ -1,47 +1,47 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Annotation Module</title>
+    <title>标记模块</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='annotation.css') }}">
   </head>
   <body>
     <nav class="top-nav">
-      <a href="{{ url_for('index') }}">Home</a>
-      <a class="active" href="{{ url_for('annotation_page') }}">Annotation</a>
-      <a href="{{ url_for('training_page') }}">Training</a>
-      <a href="{{ url_for('inference_page') }}">Inference</a>
+      <a href="{{ url_for('index') }}">首页</a>
+      <a class="active" href="{{ url_for('annotation_page') }}">标记</a>
+      <a href="{{ url_for('training_page') }}">训练</a>
+      <a href="{{ url_for('inference_page') }}">推理</a>
     </nav>
     <div class="layout">
       <aside class="sidebar">
         <section class="panel">
           <div class="panel-header">
-            <h2>Datasets</h2>
-            <button id="refreshDatasetsBtn" class="ghost" type="button">Refresh</button>
+            <h2>数据集</h2>
+            <button id="refreshDatasetsBtn" class="ghost" type="button">刷新</button>
           </div>
           <form id="datasetForm" class="stack">
-            <input id="datasetName" type="text" placeholder="Dataset name" required>
-            <textarea id="datasetDescription" placeholder="Dataset description"></textarea>
+            <input id="datasetName" type="text" placeholder="数据集名称" required>
+            <textarea id="datasetDescription" placeholder="数据集说明"></textarea>
             <div class="split-grid">
-              <label>Train<input id="splitTrain" type="number" min="0" max="1" step="0.1" value="0.8"></label>
-              <label>Val<input id="splitVal" type="number" min="0" max="1" step="0.1" value="0.2"></label>
-              <label>Test<input id="splitTest" type="number" min="0" max="1" step="0.1" value="0.0"></label>
+              <label>训练集<input id="splitTrain" type="number" min="0" max="1" step="0.1" value="0.8"></label>
+              <label>验证集<input id="splitVal" type="number" min="0" max="1" step="0.1" value="0.2"></label>
+              <label>测试集<input id="splitTest" type="number" min="0" max="1" step="0.1" value="0.0"></label>
             </div>
-            <button type="submit">Create dataset</button>
+            <button type="submit">新建数据集</button>
           </form>
           <div id="datasetList" class="list"></div>
         </section>
 
         <section class="panel">
           <div class="panel-header">
-            <h2>Classes</h2>
-            <span id="currentDatasetName" class="subtle">No dataset selected</span>
+            <h2>类别</h2>
+            <span id="currentDatasetName" class="subtle">未选择数据集</span>
           </div>
           <form id="classForm" class="inline-form">
-            <input id="className" type="text" placeholder="Class name">
+            <input id="className" type="text" placeholder="类别名称">
             <input id="classColor" type="color" value="#00ff00">
-            <button type="submit">Add</button>
+            <button type="submit">添加</button>
           </form>
           <div id="classList" class="list compact"></div>
         </section>
@@ -52,17 +52,17 @@
           <div class="toolbar">
             <label class="file-button">
               <input id="imageInput" type="file" multiple accept=".jpg,.jpeg,.png,.bmp,.webp">
-              <span>Upload images</span>
+              <span>上传图片</span>
             </label>
             <select id="classSelect"></select>
-            <button id="prevImageBtn" class="ghost" type="button">Prev</button>
-            <button id="nextImageBtn" class="ghost" type="button">Next</button>
-            <button id="saveAnnotationsBtn" type="button">Save</button>
-            <button id="clearAnnotationsBtn" class="ghost" type="button">Clear boxes</button>
-            <button id="exportBtn" class="ghost" type="button">Export YOLO</button>
+            <button id="prevImageBtn" class="ghost" type="button">上一张</button>
+            <button id="nextImageBtn" class="ghost" type="button">下一张</button>
+            <button id="saveAnnotationsBtn" type="button">保存标注</button>
+            <button id="clearAnnotationsBtn" class="ghost" type="button">清空框</button>
+            <button id="exportBtn" class="ghost" type="button">导出 YOLO 数据集</button>
           </div>
           <div class="status-row">
-            <div id="statusBar" class="status-bar">Ready</div>
+            <div id="statusBar" class="status-bar">准备就绪</div>
             <div id="imageCounter" class="subtle">0 / 0</div>
           </div>
         </section>
@@ -70,15 +70,15 @@
         <section class="workspace">
           <div class="panel image-list-panel">
             <div class="panel-header">
-              <h2>Images</h2>
+              <h2>图片</h2>
             </div>
             <div id="imageList" class="image-list"></div>
           </div>
 
           <div class="panel canvas-panel">
             <div class="panel-header">
-              <h2>Canvas</h2>
-              <div class="hint">Drag to create. Click a box to select. Drag selected box to move. Drag handle to resize. Delete removes the selected box.</div>
+              <h2>标注画布</h2>
+              <div class="hint">拖拽创建标注框；点击框可选中；拖动选中框可移动；拖动右下角控制点可缩放；按 Delete 删除选中框。</div>
             </div>
             <div class="canvas-wrap">
               <canvas id="annotationCanvas" width="960" height="640"></canvas>

@@ -1,41 +1,41 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Inference Module</title>
+    <title>推理模块</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='inference.css') }}">
   </head>
   <body>
     <nav class="top-nav">
-      <a href="{{ url_for('index') }}">Home</a>
-      <a href="{{ url_for('annotation_page') }}">Annotation</a>
-      <a href="{{ url_for('training_page') }}">Training</a>
-      <a class="active" href="{{ url_for('inference_page') }}">Inference</a>
+      <a href="{{ url_for('index') }}">首页</a>
+      <a href="{{ url_for('annotation_page') }}">标记</a>
+      <a href="{{ url_for('training_page') }}">训练</a>
+      <a class="active" href="{{ url_for('inference_page') }}">推理</a>
     </nav>
     <div class="layout">
       <aside class="sidebar">
         <section class="panel">
           <div class="panel-header">
-            <h2>Inference Task</h2>
+            <h2>推理任务</h2>
           </div>
           <form id="inferenceForm" class="stack">
-            <input id="taskName" name="name" type="text" placeholder="Task name">
-            <label>Weights<select id="weightsPath" name="weights" required></select></label>
+            <input id="taskName" name="name" type="text" placeholder="任务名称">
+            <label>权重文件<select id="weightsPath" name="weights" required></select></label>
             <div class="grid-two">
-              <label>Image size<input id="imgSize" name="img_size" type="number" min="32" step="32" value="640"></label>
-              <label>Device<input id="device" name="device" type="text" value="cpu"></label>
+              <label>图片尺寸<input id="imgSize" name="img_size" type="number" min="32" step="32" value="640"></label>
+              <label>设备<input id="device" name="device" type="text" value="cpu"></label>
             </div>
             <div class="grid-two">
-              <label>Conf<input id="confThres" name="conf_thres" type="number" min="0" max="1" step="0.05" value="0.4"></label>
-              <label>IoU<input id="iouThres" name="iou_thres" type="number" min="0" max="1" step="0.05" value="0.5"></label>
+              <label>置信度<input id="confThres" name="conf_thres" type="number" min="0" max="1" step="0.05" value="0.4"></label>
+              <label>IoU 阈值<input id="iouThres" name="iou_thres" type="number" min="0" max="1" step="0.05" value="0.5"></label>
             </div>
             <label class="checkbox">
               <input id="saveTxt" name="save_txt" type="checkbox">
-              <span>Save txt labels</span>
+              <span>保存 txt 标签</span>
             </label>
-            <label>Input file<input id="inputFile" name="file" type="file" accept=".jpg,.jpeg,.png,.bmp,.webp,.mp4,.avi,.mov,.mkv,.wmv" required></label>
-            <button type="submit">Run inference</button>
+            <label>输入文件<input id="inputFile" name="file" type="file" accept=".jpg,.jpeg,.png,.bmp,.webp,.mp4,.avi,.mov,.mkv,.wmv" required></label>
+            <button type="submit">开始推理</button>
           </form>
         </section>
       </aside>
@@ -43,29 +43,29 @@
       <main class="content">
         <section class="panel">
           <div class="panel-header">
-            <h2>Task List</h2>
-            <button id="refreshTasksBtn" class="ghost" type="button">Refresh</button>
+            <h2>任务列表</h2>
+            <button id="refreshTasksBtn" class="ghost" type="button">刷新</button>
           </div>
-          <div id="statusBar" class="status-bar">Ready</div>
+          <div id="statusBar" class="status-bar">准备就绪</div>
           <div id="taskList" class="task-list"></div>
         </section>
 
         <section class="detail-grid">
           <section class="panel">
             <div class="panel-header">
-              <h2>Task Detail</h2>
-              <button id="stopTaskBtn" class="ghost" type="button">Stop task</button>
+              <h2>任务详情</h2>
+              <button id="stopTaskBtn" class="ghost" type="button">停止任务</button>
             </div>
-            <div id="taskDetail" class="detail-box">Select a task to view detail.</div>
+            <div id="taskDetail" class="detail-box">请选择一个任务查看详情。</div>
             <div id="artifactLinks" class="artifact-links"></div>
           </section>
 
           <section class="panel">
             <div class="panel-header">
-              <h2>Inference Result</h2>
-              <button id="refreshLogBtn" class="ghost" type="button">Refresh log</button>
+              <h2>推理结果</h2>
+              <button id="refreshLogBtn" class="ghost" type="button">刷新日志</button>
             </div>
-            <div id="resultPreview" class="result-preview">Select a task to view result preview.</div>
+            <div id="resultPreview" class="result-preview">请选择一个任务查看结果预览。</div>
             <pre id="logViewer" class="log-viewer"></pre>
           </section>
         </section>

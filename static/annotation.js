@@ -16,6 +16,11 @@ const state = {
 const canvas = document.getElementById("annotationCanvas");
 const ctx = canvas.getContext("2d");
 const HANDLE_SIZE = 10;
+const imageStatusText = {
+  unannotated: "未标注",
+  annotated: "已标注",
+  reviewed: "已审核",
+};
 
 const elements = {
   datasetList: document.getElementById("datasetList"),
@@ -52,7 +57,7 @@ async function requestJson(url, options = {}) {
   const response = await fetch(url, options);
   const payload = await response.json().catch(() => null);
   if (!response.ok || !payload || payload.success === false) {
-    throw new Error(payload?.message || `Request failed: ${response.status}`);
+    throw new Error(payload?.message || `请求失败：${response.status}`);
   }
   return payload.data;
 }
@@ -107,8 +112,8 @@ function renderDatasets() {
     card.className = `dataset-card${dataset.id === state.currentDatasetId ? " active" : ""}`;
     card.innerHTML = `
       <h3>${dataset.name}</h3>
-      <div class="meta">Images ${dataset.total_images} / Annotated ${dataset.annotated_images}</div>
-      <div class="meta">Classes ${dataset.class_count}</div>
+      <div class="meta">图片 ${dataset.total_images} / 已标注 ${dataset.annotated_images}</div>
+      <div class="meta">类别 ${dataset.class_count}</div>
     `;
     card.addEventListener("click", () => selectDataset(dataset.id));
     elements.datasetList.appendChild(card);
@@ -120,17 +125,17 @@ function renderClasses() {
   elements.classSelect.innerHTML = "";
 
   if (!state.currentDatasetId) {
-    elements.currentDatasetName.textContent = "No dataset selected";
+    elements.currentDatasetName.textContent = "未选择数据集";
     return;
   }
 
   const dataset = state.datasets.find((item) => item.id === state.currentDatasetId);
-  elements.currentDatasetName.textContent = dataset ? dataset.name : "No dataset selected";
+  elements.currentDatasetName.textContent = dataset ? dataset.name : "未选择数据集";
 
   if (!state.classes.length) {
     const empty = document.createElement("div");
     empty.className = "subtle";
-    empty.textContent = "Add at least one class";
+    empty.textContent = "请至少添加一个类别";
     elements.classList.appendChild(empty);
   }
 
@@ -142,7 +147,7 @@ function renderClasses() {
         <span class="swatch" style="background:${item.color}"></span>
         <span>${item.name}</span>
       </div>
-      <button class="ghost" type="button">Delete</button>
+      <button class="ghost" type="button">删除</button>
     `;
     row.querySelector("button").addEventListener("click", async () => {
       try {
@@ -150,7 +155,7 @@ function renderClasses() {
           method: "DELETE",
         });
         await loadDatasetDetails(state.currentDatasetId);
-        setStatus(`Deleted class ${item.name}`);
+        setStatus(`已删除类别：${item.name}`);
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -172,7 +177,7 @@ function renderImages() {
     card.innerHTML = `
       <h3>${image.original_name}</h3>
       <div class="meta">${image.width} x ${image.height}</div>
-      <div class="meta">${image.status} / Boxes ${image.annotation_count}</div>
+      <div class="meta">${imageStatusText[image.status] || image.status} / 标注框 ${image.annotation_count}</div>
     `;
     card.addEventListener("click", () => selectImage(image.id));
     elements.imageList.appendChild(card);
@@ -185,7 +190,7 @@ function renderCanvas() {
   if (!state.imageElement) {
     ctx.fillStyle = "#8a8f9b";
     ctx.font = "20px sans-serif";
-    ctx.fillText("Select an image to start annotating", 24, 40);
+    ctx.fillText("请选择一张图片开始标注", 24, 40);
     return;
   }
 
@@ -208,7 +213,7 @@ function renderCanvas() {
     ctx.strokeStyle = color;
     ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
 
-    const label = klass ? klass.name : `class:${annotation.class_id}`;
+    const label = klass ? klass.name : `类别:${annotation.class_id}`;
     ctx.fillStyle = color;
     ctx.fillRect(rect.x, Math.max(0, rect.y - 22), Math.max(70, label.length * 10), 22);
     ctx.fillStyle = "#ffffff";
@@ -290,7 +295,7 @@ async function selectDataset(datasetId) {
   renderCanvas();
   try {
     await loadDatasetDetails(datasetId);
-    setStatus("Dataset selected");
+    setStatus("已选择数据集");
   } catch (error) {
     setStatus(error.message, true);
   }
@@ -316,7 +321,7 @@ async function selectImage(imageId) {
       renderCanvas();
     };
     img.src = image.image_url;
-    setStatus(`Loaded ${image.original_name}`);
+    setStatus(`已加载图片：${image.original_name}`);
   } catch (error) {
     setStatus(error.message, true);
   }
@@ -325,12 +330,12 @@ async function selectImage(imageId) {
 async function moveImage(step) {
   const index = imageIndex();
   if (index < 0) {
-    setStatus("Select an image first", true);
+    setStatus("请先选择图片", true);
     return;
   }
   const target = state.images[index + step];
   if (!target) {
-    setStatus("No more images");
+    setStatus("没有更多图片");
     return;
   }
   await selectImage(target.id);
@@ -356,7 +361,7 @@ async function createDataset(event) {
     elements.splitTest.value = "0.0";
     await loadDatasets();
     await selectDataset(dataset.id);
-    setStatus("Dataset created");
+    setStatus("数据集创建成功");
   } catch (error) {
     setStatus(error.message, true);
   }
@@ -365,7 +370,7 @@ async function createDataset(event) {
 async function createClass(event) {
   event.preventDefault();
   if (!state.currentDatasetId) {
-    setStatus("Select a dataset first", true);
+    setStatus("请先选择数据集", true);
     return;
   }
   try {
@@ -379,7 +384,7 @@ async function createClass(event) {
     });
     elements.className.value = "";
     await loadDatasetDetails(state.currentDatasetId);
-    setStatus("Class added");
+    setStatus("类别添加成功");
   } catch (error) {
     setStatus(error.message, true);
   }
@@ -387,7 +392,7 @@ async function createClass(event) {
 
 async function uploadImages(event) {
   if (!state.currentDatasetId) {
-    setStatus("Select a dataset first", true);
+    setStatus("请先选择数据集", true);
     event.target.value = "";
     return;
   }
@@ -406,11 +411,11 @@ async function uploadImages(event) {
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok || !payload || payload.success === false) {
-      throw new Error(payload?.message || "Upload failed");
+        throw new Error(payload?.message || "上传失败");
     }
     await loadDatasetDetails(state.currentDatasetId);
     await loadDatasets();
-    setStatus(`Uploaded ${files.length} images`);
+    setStatus(`已上传 ${files.length} 张图片`);
   } catch (error) {
     setStatus(error.message, true);
   } finally {
@@ -420,7 +425,7 @@ async function uploadImages(event) {
 
 async function saveAnnotations() {
   if (!state.currentImageId) {
-    setStatus("Select an image first", true);
+    setStatus("请先选择图片", true);
     return;
   }
   try {
@@ -431,7 +436,7 @@ async function saveAnnotations() {
     });
     await loadDatasetDetails(state.currentDatasetId);
     renderImages();
-    setStatus("Annotations saved");
+    setStatus("标注已保存");
   } catch (error) {
     setStatus(error.message, true);
   }
@@ -439,14 +444,14 @@ async function saveAnnotations() {
 
 async function exportDataset() {
   if (!state.currentDatasetId) {
-    setStatus("Select a dataset first", true);
+    setStatus("请先选择数据集", true);
     return;
   }
   try {
     const result = await requestJson(`/api/annotation/datasets/${state.currentDatasetId}/export`, {
       method: "POST",
     });
-    setStatus(`Exported to ${result.export_dir}`);
+    setStatus(`已导出到：${result.export_dir}`);
   } catch (error) {
     setStatus(error.message, true);
   }
@@ -484,7 +489,7 @@ canvas.addEventListener("mousedown", (event) => {
   }
 
   if (!state.classes.length || !elements.classSelect.value) {
-    setStatus("Add a class first", true);
+    setStatus("请先添加类别", true);
     return;
   }
 

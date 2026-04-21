@@ -25,6 +25,21 @@ const trainingElements = {
   refreshLogBtn: document.getElementById("refreshLogBtn"),
   stopTaskBtn: document.getElementById("stopTaskBtn"),
 };
+const taskStatusText = {
+  pending: "等待中",
+  running: "运行中",
+  completed: "已完成",
+  failed: "失败",
+  stopped: "已停止",
+};
+const sourceText = {
+  annotation_export: "标记导出",
+  builtin: "内置配置",
+  weights: "权重目录",
+  root: "根目录",
+  runs: "训练结果",
+  custom: "自定义",
+};
 
 function setTrainingStatus(message, isError = false) {
   trainingElements.statusBar.textContent = message;
@@ -35,7 +50,7 @@ async function trainingRequest(url, options = {}) {
   const response = await fetch(url, options);
   const payload = await response.json().catch(() => null);
   if (!response.ok || !payload || payload.success === false) {
-    throw new Error(payload?.message || `Request failed: ${response.status}`);
+    throw new Error(payload?.message || `请求失败：${response.status}`);
   }
   return payload.data;
 }
@@ -45,7 +60,7 @@ function fillSelect(select, items) {
   items.forEach((item) => {
     const option = document.createElement("option");
     option.value = item.path;
-    option.textContent = `${item.label} (${item.source || "custom"})`;
+    option.textContent = `${item.label} (${sourceText[item.source || "custom"] || item.source || "自定义"})`;
     select.appendChild(option);
   });
 }
@@ -64,8 +79,8 @@ function renderTaskList() {
     card.className = `task-card${task.id === trainingState.selectedTaskId ? " active" : ""}`;
     card.innerHTML = `
       <h3>${task.name}</h3>
-      <div class="meta">Status: ${task.status}</div>
-      <div class="meta">Epochs: ${task.epochs} | Batch: ${task.batch_size}</div>
+      <div class="meta">状态：${taskStatusText[task.status] || task.status}</div>
+      <div class="meta">轮数：${task.epochs} | 批大小：${task.batch_size}</div>
       <div class="meta">${task.created_at}</div>
     `;
     card.addEventListener("click", () => selectTask(task.id));
@@ -75,25 +90,25 @@ function renderTaskList() {
 
 function renderTaskDetail(task) {
   if (!task) {
-    trainingElements.taskDetail.textContent = "Select a task to view detail.";
+    trainingElements.taskDetail.textContent = "请选择一个任务查看详情。";
     trainingElements.artifactLinks.innerHTML = "";
     return;
   }
   trainingElements.taskDetail.textContent = [
-    `Name: ${task.name}`,
-    `Status: ${task.status}`,
-    `Dataset: ${task.dataset_yaml}`,
-    `Weights: ${task.weights}`,
-    `Model cfg: ${task.model_cfg}`,
-    `Epochs: ${task.epochs}`,
-    `Batch size: ${task.batch_size}`,
-    `Image size: ${task.img_size}`,
-    `Device: ${task.device || "default"}`,
-    `Resume: ${task.resume ? "yes" : "no"}`,
-    `Output dir: ${task.output_dir}`,
-    `best.pt: ${task.best_weight || "not available yet"}`,
-    `last.pt: ${task.last_weight || "not available yet"}`,
-    `Error: ${task.error_message || "-"}`,
+    `任务名称：${task.name}`,
+    `状态：${taskStatusText[task.status] || task.status}`,
+    `数据集：${task.dataset_yaml}`,
+    `权重：${task.weights}`,
+    `模型配置：${task.model_cfg}`,
+    `训练轮数：${task.epochs}`,
+    `批大小：${task.batch_size}`,
+    `图片尺寸：${task.img_size}`,
+    `设备：${task.device || "默认"}`,
+    `继续训练：${task.resume ? "是" : "否"}`,
+    `输出目录：${task.output_dir}`,
+    `best.pt：${task.best_weight || "暂不可用"}`,
+    `last.pt：${task.last_weight || "暂不可用"}`,
+    `错误信息：${task.error_message || "-"}`,
   ].join("\n");
 
   const links = [];
@@ -108,10 +123,10 @@ function renderTaskDetail(task) {
   artifactDefs.forEach(([key, label, exists]) => {
     if (exists) {
       links.push(
-        `<a href="/api/training/tasks/${task.id}/artifacts/${key}" target="_blank" rel="noopener noreferrer">Download ${label}</a>`,
+        `<a href="/api/training/tasks/${task.id}/artifacts/${key}" target="_blank" rel="noopener noreferrer">下载 ${label}</a>`,
       );
     } else {
-      links.push(`<a class="muted">${label} not available yet</a>`);
+      links.push(`<a class="muted">${label} 暂不可用</a>`);
     }
   });
   trainingElements.artifactLinks.innerHTML = links.join("");
@@ -154,7 +169,7 @@ async function createTrainingTask(event) {
         resume: trainingElements.resume.checked,
       }),
     });
-    setTrainingStatus("Training task started");
+    setTrainingStatus("训练任务已启动");
     await loadTaskList();
     await selectTask(task.id);
   } catch (error) {
@@ -193,7 +208,7 @@ trainingElements.trainingForm.addEventListener("submit", createTrainingTask);
 trainingElements.refreshTasksBtn.addEventListener("click", async () => {
   try {
     await loadTaskList();
-    setTrainingStatus("Task list refreshed");
+    setTrainingStatus("任务列表已刷新");
   } catch (error) {
     setTrainingStatus(error.message, true);
   }
@@ -201,14 +216,14 @@ trainingElements.refreshTasksBtn.addEventListener("click", async () => {
 trainingElements.refreshLogBtn.addEventListener("click", async () => {
   try {
     await refreshSelectedTask();
-    setTrainingStatus("Log refreshed");
+    setTrainingStatus("日志已刷新");
   } catch (error) {
     setTrainingStatus(error.message, true);
   }
 });
 trainingElements.stopTaskBtn.addEventListener("click", async () => {
   if (!trainingState.selectedTaskId) {
-    setTrainingStatus("Select a task first", true);
+    setTrainingStatus("请先选择任务", true);
     return;
   }
   try {
@@ -217,7 +232,7 @@ trainingElements.stopTaskBtn.addEventListener("click", async () => {
     });
     renderTaskDetail(task);
     await loadTaskList();
-    setTrainingStatus("Task stopped");
+    setTrainingStatus("任务已停止");
   } catch (error) {
     setTrainingStatus(error.message, true);
   }
@@ -228,7 +243,7 @@ trainingElements.stopTaskBtn.addEventListener("click", async () => {
     await loadTrainingOptions();
     await loadTaskList();
     startPolling();
-    setTrainingStatus("Ready");
+    setTrainingStatus("准备就绪");
   } catch (error) {
     setTrainingStatus(error.message, true);
   }
