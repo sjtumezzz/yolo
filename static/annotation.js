@@ -16,6 +16,7 @@ const state = {
 const canvas = document.getElementById("annotationCanvas");
 const ctx = canvas.getContext("2d");
 const HANDLE_SIZE = 10;
+const API_KEY = document.querySelector('meta[name="api-key"]')?.content || "";
 const imageStatusText = {
   unannotated: "未标注",
   annotated: "已标注",
@@ -54,12 +55,25 @@ function setStatus(message, isError = false) {
 }
 
 async function requestJson(url, options = {}) {
-  const response = await fetch(url, options);
+  const response = await fetch(url, withApiKey(options));
   const payload = await response.json().catch(() => null);
   if (!response.ok || !payload || payload.success === false) {
     throw new Error(payload?.message || `请求失败：${response.status}`);
   }
   return payload.data;
+}
+
+function withApiKey(options = {}) {
+  if (!API_KEY) {
+    return options;
+  }
+  return {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      "X-API-Key": API_KEY,
+    },
+  };
 }
 
 function classById(classId) {
@@ -405,10 +419,10 @@ async function uploadImages(event) {
   files.forEach((file) => formData.append("files", file));
 
   try {
-    const response = await fetch(`/api/annotation/datasets/${state.currentDatasetId}/images`, {
+    const response = await fetch(`/api/annotation/datasets/${state.currentDatasetId}/images`, withApiKey({
       method: "POST",
       body: formData,
-    });
+    }));
     const payload = await response.json().catch(() => null);
     if (!response.ok || !payload || payload.success === false) {
         throw new Error(payload?.message || "上传失败");

@@ -25,6 +25,7 @@ const inferenceElements = {
   refreshLogBtn: document.getElementById("refreshLogBtn"),
   stopTaskBtn: document.getElementById("stopTaskBtn"),
 };
+const API_KEY = document.querySelector('meta[name="api-key"]')?.content || "";
 const inferenceStatusText = {
   pending: "等待中",
   running: "运行中",
@@ -48,12 +49,25 @@ function setInferenceStatus(message, isError = false) {
 }
 
 async function inferenceRequest(url, options = {}) {
-  const response = await fetch(url, options);
+  const response = await fetch(url, withApiKey(options));
   const payload = await response.json().catch(() => null);
   if (!response.ok || !payload || payload.success === false) {
     throw new Error(payload?.message || `请求失败：${response.status}`);
   }
   return payload.data;
+}
+
+function withApiKey(options = {}) {
+  if (!API_KEY) {
+    return options;
+  }
+  return {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      "X-API-Key": API_KEY,
+    },
+  };
 }
 
 function fillWeightSelect(items) {
@@ -169,10 +183,10 @@ async function createInferenceTask(event) {
     }
     formData.append("file", inferenceElements.inputFile.files[0]);
 
-    const response = await fetch("/api/inference/tasks", {
+    const response = await fetch("/api/inference/tasks", withApiKey({
       method: "POST",
       body: formData,
-    });
+    }));
     const payload = await response.json().catch(() => null);
     if (!response.ok || !payload || payload.success === false) {
       throw new Error(payload?.message || "启动推理失败");

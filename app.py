@@ -1,5 +1,7 @@
 import os
-from flask import Flask, render_template, Response
+import platform
+import sys
+from flask import Flask, render_template, Response, jsonify, request
 
 from annotation import AnnotationService, annotation_bp
 from inference_ui import InferenceService, inference_bp
@@ -9,9 +11,27 @@ app = Flask(__name__)
 app.config['ANNOTATION_SERVICE'] = AnnotationService(os.path.dirname(os.path.abspath(__file__)))
 app.config['INFERENCE_SERVICE'] = InferenceService(os.path.dirname(os.path.abspath(__file__)))
 app.config['TRAINING_SERVICE'] = TrainingService(os.path.dirname(os.path.abspath(__file__)))
+app.config['YOLO_API_KEY'] = os.environ.get('YOLO_API_KEY', '').strip()
 app.register_blueprint(annotation_bp)
 app.register_blueprint(inference_bp)
 app.register_blueprint(training_bp)
+
+
+@app.before_request
+def require_api_key():
+    api_key = app.config.get('YOLO_API_KEY')
+    if not api_key or not request.path.startswith('/api/'):
+        return None
+    if request.path in {'/api/health', '/api/info'}:
+        return None
+    if request.headers.get('X-API-Key') == api_key:
+        return None
+    return jsonify({'success': False, 'message': 'invalid api key'}), 401
+
+
+@app.context_processor
+def inject_runtime_config():
+    return {'api_key': app.config.get('YOLO_API_KEY', '')}
 
 
 @app.route('/')
@@ -22,6 +42,34 @@ def index():
 @app.route('/api/health')
 def health_check():
     return {'status': 'ok'}
+
+
+@app.route('/api/info')
+def service_info():
+    gpu_available = False
+    torch_version = None
+    cuda_version = None
+    try:
+        import torch
+        torch_version = torch.__version__
+        cuda_version = torch.version.cuda
+        gpu_available = bool(torch.cuda.is_available())
+    except Exception:
+        pass
+
+    return {
+        'success': True,
+        'data': {
+            'name': 'YOLO Workbench Backend',
+            'version': os.environ.get('YOLO_APP_VERSION', 'dev'),
+            'python': sys.version.split()[0],
+            'platform': platform.platform(),
+            'torch': torch_version,
+            'cuda': cuda_version,
+            'gpu_available': gpu_available,
+            'api_key_enabled': bool(app.config.get('YOLO_API_KEY')),
+        },
+    }
 
 
 @app.route('/annotation')

@@ -14,10 +14,12 @@ class TrainingService:
         self.root_dir = Path(root_dir)
         self.data_dir = self.root_dir / "annotation_data"
         self.task_dir = self.data_dir / "training_tasks"
+        self.log_dir = Path(os.environ.get("YOLO_LOG_DIR", self.root_dir / "logs")) / "training"
         self.db_path = self.data_dir / "training.db"
         self.processes = {}
 
         self.task_dir.mkdir(parents=True, exist_ok=True)
+        self.log_dir.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
     @contextmanager
@@ -181,7 +183,7 @@ class TrainingService:
         output_dir = self._predict_output_dir(name)
         task_path = self.task_dir / name
         task_path.mkdir(parents=True, exist_ok=True)
-        log_file = task_path / "train.log"
+        log_file = self.log_dir / f"{name}.log"
         best_weight, last_weight = self._resolve_best_last(output_dir)
 
         command = [

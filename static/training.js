@@ -25,6 +25,7 @@ const trainingElements = {
   refreshLogBtn: document.getElementById("refreshLogBtn"),
   stopTaskBtn: document.getElementById("stopTaskBtn"),
 };
+const API_KEY = document.querySelector('meta[name="api-key"]')?.content || "";
 const taskStatusText = {
   pending: "等待中",
   running: "运行中",
@@ -47,12 +48,25 @@ function setTrainingStatus(message, isError = false) {
 }
 
 async function trainingRequest(url, options = {}) {
-  const response = await fetch(url, options);
+  const response = await fetch(url, withApiKey(options));
   const payload = await response.json().catch(() => null);
   if (!response.ok || !payload || payload.success === false) {
     throw new Error(payload?.message || `请求失败：${response.status}`);
   }
   return payload.data;
+}
+
+function withApiKey(options = {}) {
+  if (!API_KEY) {
+    return options;
+  }
+  return {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      "X-API-Key": API_KEY,
+    },
+  };
 }
 
 function fillSelect(select, items) {

@@ -136,13 +136,21 @@ Create your own feature branch from it when needed.
 Current Docker files:
 
 - `Dockerfile`
+- `Dockerfile.gpu`
 - `docker-compose.yml`
+- `docker-compose.gpu.yml`
 - `DOCKER_BACKEND.md`
 
-Run with:
+Run CPU backend with:
 
 ```powershell
 .\scripts\start_backend.ps1 -Build
+```
+
+Run GPU backend with:
+
+```powershell
+.\scripts\start_backend.ps1 -Gpu -Build
 ```
 
 For the fixed backend container contract, see `DOCKER_BACKEND.md`.

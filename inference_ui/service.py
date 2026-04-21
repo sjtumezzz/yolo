@@ -25,12 +25,14 @@ class InferenceService:
         self.upload_dir = self.data_dir / "inference_uploads"
         self.task_dir = self.data_dir / "inference_tasks"
         self.output_root = self.data_dir / "inference_outputs"
+        self.log_dir = Path(os.environ.get("YOLO_LOG_DIR", self.root_dir / "logs")) / "inference"
         self.db_path = self.data_dir / "inference.db"
         self.processes = {}
 
         self.upload_dir.mkdir(parents=True, exist_ok=True)
         self.task_dir.mkdir(parents=True, exist_ok=True)
         self.output_root.mkdir(parents=True, exist_ok=True)
+        self.log_dir.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
     @contextmanager
@@ -149,7 +151,7 @@ class InferenceService:
         output_dir = self.output_root / name
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / upload["original_name"]
-        log_file = task_folder / "infer.log"
+        log_file = self.log_dir / f"{name}.log"
 
         command = [
             sys.executable,

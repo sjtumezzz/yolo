@@ -6,14 +6,18 @@ services:
     image: yolo-workbench-backend:latest
     container_name: yolo-workbench-backend
     ports:
-      - "5001:5001"
+      - "127.0.0.1:${YOLO_BACKEND_PORT:-5001}:5001"
     volumes:
-      - ./annotation_data:/app/annotation_data
-      - ./runs:/app/runs
-      - ./weights:/app/weights
+      - ${YOLO_APP_DATA:-./annotation_data}:/app/annotation_data
+      - ${YOLO_APP_RUNS:-./runs}:/app/runs
+      - ${YOLO_APP_WEIGHTS:-./weights}:/app/weights
+      - ${YOLO_APP_LOGS:-./logs}:/app/logs
     environment:
       FLASK_ENV: production
       PYTHONUNBUFFERED: "1"
+      YOLO_API_KEY: ${YOLO_API_KEY:-}
+      YOLO_APP_VERSION: ${YOLO_APP_VERSION:-dev}
+      YOLO_LOG_DIR: /app/logs
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/api/health', timeout=3).read()"]
       interval: 10s

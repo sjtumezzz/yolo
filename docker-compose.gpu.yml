@@ -1,0 +1,10 @@
+services:
+  yolo-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    image: yolo-workbench-backend:gpu
+    gpus: all
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
