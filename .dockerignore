@@ -4,7 +4,15 @@ __pycache__/
 *.pyd
 .git/
 .idea/
+venv/
 runs/
+weights/*.pt
+weights/*.wts
+weights/*.onnx
+weights/*.mlmodel
+weights/*.engine
+*.pt
+*.mp4
 inference/output/
 inference/output2/
 annotation_data/

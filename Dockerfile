@@ -2,11 +2,13 @@ FROM python:3.10-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
+    libgl1 \
     libsm6 \
     libxext6 \
     libxrender1 \
@@ -20,4 +22,4 @@ COPY . .
 
 EXPOSE 5001
 
-CMD ["gunicorn", "-b", "0.0.0.0:5001", "app:app"]
+CMD ["gunicorn", "--workers", "1", "--threads", "8", "--timeout", "0", "-b", "0.0.0.0:5001", "app:app"]

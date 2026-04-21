@@ -19,6 +19,11 @@ def index():
     return render_template('home.html')
 
 
+@app.route('/api/health')
+def health_check():
+    return {'status': 'ok'}
+
+
 @app.route('/annotation')
 def annotation_page():
     return render_template('annotation.html')

@@ -1,13 +1,23 @@
-version: "3.9"
-
 services:
-  annotation-api:
+  yolo-backend:
     build:
       context: .
       dockerfile: Dockerfile
+    image: yolo-workbench-backend:latest
+    container_name: yolo-workbench-backend
     ports:
       - "5001:5001"
     volumes:
       - ./annotation_data:/app/annotation_data
+      - ./runs:/app/runs
+      - ./weights:/app/weights
     environment:
-      - FLASK_ENV=production
+      FLASK_ENV: production
+      PYTHONUNBUFFERED: "1"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/api/health', timeout=3).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped

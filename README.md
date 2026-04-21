@@ -137,15 +137,17 @@ Current Docker files:
 
 - `Dockerfile`
 - `docker-compose.yml`
+- `DOCKER_BACKEND.md`
 
 Run with:
 
 ```powershell
-docker compose up --build
+.\scripts\start_backend.ps1 -Build
 ```
+
+For the fixed backend container contract, see `DOCKER_BACKEND.md`.
 
 ## Notes
 
 - The annotation, training, and inference pages are implemented, but actual training and inference still depend on the local Python environment being complete.
 - Large model weights, training outputs, local virtual environments, and runtime-generated files should not be committed directly to GitHub.
-
