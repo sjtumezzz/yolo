@@ -151,18 +151,18 @@ Recommended implementation options:
 2. Tauri
 3. Electron
 
-### Recommended first choice
+### Current first implementation
 
-For this project, the recommended first choice is:
+The current desktop shell uses:
 
-- PyWebView + PyInstaller
+- Electron
 
 Reason:
 
-- minimal additional frontend rewrite
-- fast to integrate with the current Flask pages
-- lighter than Electron
-- easier than introducing a full JS desktop stack right now
+- the existing frontend is already web based
+- Electron can reuse the current pages directly
+- Node/Electron can call the existing PowerShell backend management scripts cleanly
+- the first exe needs a service management panel, not only a webview
 
 ### What the exe should do
 
@@ -261,6 +261,7 @@ Tasks:
 - create a small desktop launcher
 - open `http://127.0.0.1:5001`
 - show backend connection errors clearly
+- provide start, stop, restart, status, and open-log actions
 
 ### Phase 3: Startup integration
 

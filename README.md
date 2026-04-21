@@ -155,6 +155,30 @@ Run GPU backend with:
 
 For the fixed backend container contract, see `DOCKER_BACKEND.md`.
 
+## Desktop Exe
+
+The desktop shell is in:
+
+```text
+desktop/
+```
+
+Development run:
+
+```powershell
+cd desktop
+npm install
+npm run start
+```
+
+Build exe:
+
+```powershell
+npm run dist
+```
+
+For the desktop shell contract, see `DESKTOP_APP.md`.
+
 ## Notes
 
 - The annotation, training, and inference pages are implemented, but actual training and inference still depend on the local Python environment being complete.

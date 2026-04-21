@@ -26,3 +26,8 @@ inference/output2/
 *.mkv
 
 build/
+dist/
+logs/
+desktop/node_modules/
+desktop/dist/
+desktop/package-lock.json

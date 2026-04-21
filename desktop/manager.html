@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YOLO工作台启动器</title>
+    <link rel="stylesheet" href="./manager.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Docker + exe 本地工作台</p>
+          <h1>YOLO工作台启动器</h1>
+          <p class="summary">这里负责管理后台 Docker 服务。后台运行后，可以进入标记、训练和推理三个模块。</p>
+        </div>
+        <div id="serviceBadge" class="service-badge unknown">检查中</div>
+      </section>
+
+      <section class="grid">
+        <article class="panel primary-panel">
+          <div class="panel-title">
+            <div>
+              <h2>后端服务</h2>
+              <p id="backendUrl">正在读取配置...</p>
+            </div>
+            <button id="refreshBtn" class="ghost">刷新状态</button>
+          </div>
+
+          <div class="status-card">
+            <div class="status-row">
+              <span>服务状态</span>
+              <strong id="healthText">检查中</strong>
+            </div>
+            <div class="status-row">
+              <span>GPU 状态</span>
+              <strong id="gpuText">未知</strong>
+            </div>
+            <div class="status-row">
+              <span>后端版本</span>
+              <strong id="versionText">未知</strong>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="openWorkbenchBtn" class="solid">进入工作台</button>
+            <button id="startBackendBtn">启动后端</button>
+            <button id="restartBackendBtn">重启后端</button>
+            <button id="stopBackendBtn" class="danger">停止后端</button>
+          </div>
+
+          <label class="check-row">
+            <input id="gpuMode" type="checkbox">
+            <span>使用 GPU 模式启动</span>
+          </label>
+
+          <p class="hint">关闭这个 exe 不会中断正在运行的训练任务。训练任务在 Docker 后端中独立运行。</p>
+        </article>
+
+        <article class="panel">
+          <h2>部署辅助</h2>
+          <p>这些入口用于现场排查和交付，不要求用户进入容器。</p>
+          <div class="side-actions">
+            <button id="statusBtn">查看 Docker 状态</button>
+            <button id="openLogsBtn">打开日志目录</button>
+            <button id="openProjectBtn">打开程序目录</button>
+          </div>
+          <div class="path-list">
+            <div>
+              <span>程序目录</span>
+              <code id="projectRoot">读取中...</code>
+            </div>
+            <div>
+              <span>日志目录</span>
+              <code id="logsDir">读取中...</code>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="panel-title">
+          <div>
+            <h2>运行输出</h2>
+            <p>启动、停止、状态检查的输出会显示在这里。</p>
+          </div>
+          <button id="clearOutputBtn" class="ghost">清空</button>
+        </div>
+        <pre id="output">等待操作...</pre>
+      </section>
+    </main>
+
+    <script src="./manager.js"></script>
+  </body>
+</html>

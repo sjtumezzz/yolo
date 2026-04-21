@@ -1,0 +1,66 @@
+{
+  "name": "yolo-workbench-desktop",
+  "version": "0.1.0",
+  "description": "Desktop shell for YOLO Workbench Docker backend",
+  "main": "main.js",
+  "author": "YOLO Workbench",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "pack": "electron-builder --win --dir"
+  },
+  "devDependencies": {
+    "electron": "^30.5.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.yolo.workbench",
+    "productName": "YOLO工作台",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "manager.html",
+      "manager.css",
+      "manager.js"
+    ],
+    "extraResources": [
+      {
+        "from": "../scripts",
+        "to": "scripts"
+      },
+      {
+        "from": "../docker-compose.yml",
+        "to": "docker-compose.yml"
+      },
+      {
+        "from": "../docker-compose.gpu.yml",
+        "to": "docker-compose.gpu.yml"
+      },
+      {
+        "from": "../.env.example",
+        "to": ".env.example"
+      },
+      {
+        "from": "../DOCKER_BACKEND.md",
+        "to": "DOCKER_BACKEND.md"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

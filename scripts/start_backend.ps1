@@ -51,6 +51,8 @@ $composeArgs += @("up")
 
 if ($Build) {
     $composeArgs += "--build"
+} else {
+    $composeArgs += "--no-build"
 }
 $composeArgs += "-d"
 
