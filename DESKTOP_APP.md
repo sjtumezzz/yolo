@@ -38,8 +38,8 @@ Install Node.js first. Then run:
 
 ```powershell
 cd desktop
-npm install
-npm run start
+npm.cmd install
+npm.cmd run start
 ```
 
 The launcher will check:
@@ -56,8 +56,8 @@ If the backend is not running, use the launcher buttons to start it.
 From `desktop/`:
 
 ```powershell
-npm install
-npm run dist
+npm.cmd install
+npm.cmd run dist
 ```
 
 Build outputs are written to:
@@ -67,6 +67,12 @@ desktop/dist/
 ```
 
 This directory is ignored by Git.
+
+If GitHub release downloads are blocked, use the local Electron runtime mode already configured in `desktop/package.json`. For a quick unpacked verification build, run:
+
+```powershell
+npm.cmd run pack
+```
 
 ## Backend Scripts Used
 

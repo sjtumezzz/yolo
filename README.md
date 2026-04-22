@@ -167,14 +167,14 @@ Development run:
 
 ```powershell
 cd desktop
-npm install
-npm run start
+npm.cmd install
+npm.cmd run start
 ```
 
 Build exe:
 
 ```powershell
-npm run dist
+npm.cmd run dist
 ```
 
 For the desktop shell contract, see `DESKTOP_APP.md`.

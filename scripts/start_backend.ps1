@@ -57,6 +57,9 @@ if ($Build) {
 $composeArgs += "-d"
 
 docker @composeArgs
+if ($LASTEXITCODE -ne 0) {
+    throw "docker compose failed with exit code $LASTEXITCODE."
+}
 
 $port = if ($env:YOLO_BACKEND_PORT) { $env:YOLO_BACKEND_PORT } else { "5001" }
 $healthUrl = "http://127.0.0.1:$port/api/health"
