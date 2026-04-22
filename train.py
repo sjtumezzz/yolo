@@ -114,9 +114,11 @@ def train(hyp, opt, device, tb_writer=None):
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
     # plot_lr_scheduler(optimizer, scheduler, epochs)
 
-    # Resume
+    # Resume optimizer/epoch only when explicitly requested.  A .pt file is
+    # often used as pretrained weights for fine-tuning; in that case loading
+    # optimizer momentum from a different head shape can corrupt optimizer.step.
     start_epoch, best_fitness = 0, 0.0
-    if pretrained:
+    if pretrained and opt.resume:
         # Optimizer
         if ckpt['optimizer'] is not None:
             optimizer.load_state_dict(ckpt['optimizer'])
@@ -134,6 +136,7 @@ def train(hyp, opt, device, tb_writer=None):
                   (weights, ckpt['epoch'], epochs))
             epochs += ckpt['epoch']  # finetune additional epochs
 
+    if pretrained:
         del ckpt, state_dict
 
     # Image sizes
