@@ -8,6 +8,9 @@ venv/
 runs/
 logs/
 dist/
+desktop/node_modules/
+desktop/dist/
+desktop/package-lock.json
 weights/*.pt
 weights/*.wts
 weights/*.onnx
