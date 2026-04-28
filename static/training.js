@@ -24,8 +24,11 @@ const trainingElements = {
   refreshTasksBtn: document.getElementById("refreshTasksBtn"),
   refreshLogBtn: document.getElementById("refreshLogBtn"),
   stopTaskBtn: document.getElementById("stopTaskBtn"),
+  deleteTaskBtn: document.getElementById("deleteTaskBtn"),
 };
+
 const API_KEY = document.querySelector('meta[name="api-key"]')?.content || "";
+
 const taskStatusText = {
   pending: "等待中",
   running: "运行中",
@@ -33,8 +36,9 @@ const taskStatusText = {
   failed: "失败",
   stopped: "已停止",
 };
+
 const sourceText = {
-  annotation_export: "标记导出",
+  annotation_export: "标注导出",
   builtin: "内置配置",
   weights: "权重目录",
   root: "根目录",
@@ -73,8 +77,12 @@ function fillSelect(select, items) {
   select.innerHTML = "";
   items.forEach((item) => {
     const option = document.createElement("option");
+    const sourceLabel = sourceText[item.source || "custom"] || item.source || "custom";
+    const exportSuffix = item.source === "annotation_export" && item.export_dir
+      ? ` / ${item.export_dir}`
+      : "";
     option.value = item.path;
-    option.textContent = `${item.label} (${sourceText[item.source || "custom"] || item.source || "自定义"})`;
+    option.textContent = `${item.label}${exportSuffix} (${sourceLabel})`;
     select.appendChild(option);
   });
 }
@@ -94,7 +102,7 @@ function renderTaskList() {
     card.innerHTML = `
       <h3>${task.name}</h3>
       <div class="meta">状态：${taskStatusText[task.status] || task.status}</div>
-      <div class="meta">轮数：${task.epochs} | 批大小：${task.batch_size}</div>
+      <div class="meta">轮数：${task.epochs} | Batch：${task.batch_size}</div>
       <div class="meta">${task.created_at}</div>
     `;
     card.addEventListener("click", () => selectTask(task.id));
@@ -104,31 +112,36 @@ function renderTaskList() {
 
 function renderTaskDetail(task) {
   if (!task) {
-    trainingElements.taskDetail.textContent = "请选择一个任务查看详情。";
+    trainingElements.taskDetail.textContent = "请选择一个训练任务查看详情。";
     trainingElements.artifactLinks.innerHTML = "";
+    trainingElements.logViewer.textContent = "请选择一个训练任务查看日志。";
     return;
   }
+
+  const bestLabel = task.best_weight ? task.best_weight.split(/[\\/]/).pop() : "best.pt";
+  const lastLabel = task.last_weight ? task.last_weight.split(/[\\/]/).pop() : "last.pt";
+
   trainingElements.taskDetail.textContent = [
     `任务名称：${task.name}`,
     `状态：${taskStatusText[task.status] || task.status}`,
-    `数据集：${task.dataset_yaml}`,
+    `数据集 YAML：${task.dataset_yaml}`,
     `权重：${task.weights}`,
     `模型配置：${task.model_cfg}`,
     `训练轮数：${task.epochs}`,
-    `批大小：${task.batch_size}`,
+    `Batch Size：${task.batch_size}`,
     `图片尺寸：${task.img_size}`,
-    `设备：${task.device || "默认"}`,
-    `继续训练：${task.resume ? "是" : "否"}`,
+    `设备：${task.device || "自动"}`,
+    `恢复训练：${task.resume ? "是" : "否"}`,
     `输出目录：${task.output_dir}`,
-    `best.pt：${task.best_weight || "暂不可用"}`,
-    `last.pt：${task.last_weight || "暂不可用"}`,
+    `${bestLabel}：${task.best_weight || "尚未生成"}`,
+    `${lastLabel}：${task.last_weight || "尚未生成"}`,
     `错误信息：${task.error_message || "-"}`,
   ].join("\n");
 
   const links = [];
   const artifactDefs = [
-    ["best", "best.pt", task.best_exists],
-    ["last", "last.pt", task.last_exists],
+    ["best", bestLabel, task.best_exists],
+    ["last", lastLabel, task.last_exists],
     ["results_png", "results.png", task.artifact_exists?.results_png],
     ["results_txt", "results.txt", task.artifact_exists?.results_txt],
     ["hyp_yaml", "hyp.yaml", task.artifact_exists?.hyp_yaml],
@@ -140,7 +153,7 @@ function renderTaskDetail(task) {
         `<a href="/api/training/tasks/${task.id}/artifacts/${key}" target="_blank" rel="noopener noreferrer">下载 ${label}</a>`,
       );
     } else {
-      links.push(`<a class="muted">${label} 暂不可用</a>`);
+      links.push(`<a class="muted">${label} 尚未生成</a>`);
     }
   });
   trainingElements.artifactLinks.innerHTML = links.join("");
@@ -204,6 +217,12 @@ async function refreshSelectedTask() {
   }
 }
 
+function clearTaskSelection() {
+  trainingState.selectedTaskId = null;
+  renderTaskList();
+  renderTaskDetail(null);
+}
+
 function startPolling() {
   if (trainingState.pollTimer) {
     clearInterval(trainingState.pollTimer);
@@ -219,25 +238,28 @@ function startPolling() {
 }
 
 trainingElements.trainingForm.addEventListener("submit", createTrainingTask);
+
 trainingElements.refreshTasksBtn.addEventListener("click", async () => {
   try {
     await loadTaskList();
-    setTrainingStatus("任务列表已刷新");
+    setTrainingStatus("训练任务列表已刷新");
   } catch (error) {
     setTrainingStatus(error.message, true);
   }
 });
+
 trainingElements.refreshLogBtn.addEventListener("click", async () => {
   try {
     await refreshSelectedTask();
-    setTrainingStatus("日志已刷新");
+    setTrainingStatus("训练日志已刷新");
   } catch (error) {
     setTrainingStatus(error.message, true);
   }
 });
+
 trainingElements.stopTaskBtn.addEventListener("click", async () => {
   if (!trainingState.selectedTaskId) {
-    setTrainingStatus("请先选择任务", true);
+    setTrainingStatus("请先选择一个训练任务", true);
     return;
   }
   try {
@@ -246,7 +268,33 @@ trainingElements.stopTaskBtn.addEventListener("click", async () => {
     });
     renderTaskDetail(task);
     await loadTaskList();
-    setTrainingStatus("任务已停止");
+    setTrainingStatus("训练任务已停止");
+  } catch (error) {
+    setTrainingStatus(error.message, true);
+  }
+});
+
+trainingElements.deleteTaskBtn.addEventListener("click", async () => {
+  if (!trainingState.selectedTaskId) {
+    setTrainingStatus("请先选择一个训练任务", true);
+    return;
+  }
+
+  const selectedTask = trainingState.tasks.find((task) => task.id === trainingState.selectedTaskId);
+  const confirmed = window.confirm(
+    `确认删除训练记录“${selectedTask?.name || trainingState.selectedTaskId}”吗？\n这会删除该任务的记录和日志，但不会删除已有训练权重目录。`,
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await trainingRequest(`/api/training/tasks/${trainingState.selectedTaskId}`, {
+      method: "DELETE",
+    });
+    clearTaskSelection();
+    await loadTaskList();
+    setTrainingStatus("训练记录已删除");
   } catch (error) {
     setTrainingStatus(error.message, true);
   }
@@ -257,7 +305,7 @@ trainingElements.stopTaskBtn.addEventListener("click", async () => {
     await loadTrainingOptions();
     await loadTaskList();
     startPolling();
-    setTrainingStatus("准备就绪");
+    setTrainingStatus("训练模块已就绪");
   } catch (error) {
     setTrainingStatus(error.message, true);
   }

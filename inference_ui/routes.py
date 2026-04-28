@@ -65,6 +65,14 @@ def stop_task(task_id):
     return ok(task)
 
 
+@inference_bp.route("/tasks/<int:task_id>", methods=["DELETE"])
+def delete_task(task_id):
+    payload = get_service().delete_task(task_id)
+    if not payload:
+        return fail("task not found", status=404)
+    return ok(payload)
+
+
 @inference_bp.route("/tasks/<int:task_id>/source", methods=["GET"])
 def download_source(task_id):
     task = get_service().get_task(task_id)
@@ -79,3 +87,11 @@ def download_output(task_id):
     if not task or not Path(task["output_path"]).exists():
       return fail("output file not found", status=404)
     return send_file(task["output_path"], as_attachment=True)
+
+
+@inference_bp.route("/tasks/<int:task_id>/output/preview", methods=["GET"])
+def preview_output(task_id):
+    task = get_service().get_task(task_id)
+    if not task or not Path(task["output_path"]).exists():
+      return fail("output file not found", status=404)
+    return send_file(task["output_path"], as_attachment=False)

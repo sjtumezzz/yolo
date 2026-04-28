@@ -76,6 +76,11 @@ select {
   margin-bottom: 12px;
 }
 
+.panel-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .panel-header h2 {
   margin: 0;
   font-size: 18px;
@@ -85,6 +90,13 @@ select {
 .task-list {
   display: grid;
   gap: 10px;
+}
+
+.task-list {
+  min-height: 280px;
+  max-height: 360px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .grid-two {
@@ -121,6 +133,11 @@ button {
 button.ghost {
   background: #ece5d7;
   color: var(--text);
+}
+
+button.danger-soft {
+  background: #f3ddd7;
+  color: #8a3625;
 }
 
 .checkbox {

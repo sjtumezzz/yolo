@@ -1,5 +1,6 @@
 import glob
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -7,6 +8,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from signal import SIGTERM
+import yaml
 
 
 class TrainingService:
@@ -68,6 +70,32 @@ class TrainingService:
     def _row_to_dict(self, row):
         return dict(row) if row else None
 
+    def _dataset_label_from_yaml(self, yaml_path: Path) -> str:
+        try:
+            payload = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+        except (OSError, yaml.YAMLError, UnicodeDecodeError):
+            payload = {}
+
+        dataset_name = str(payload.get("dataset_name") or "").strip()
+        if dataset_name:
+            return dataset_name
+
+        match = re.match(r"dataset_(\d+)_", yaml_path.parent.name)
+        if match:
+            dataset_id = int(match.group(1))
+            try:
+                with self.connect() as conn:
+                    row = conn.execute(
+                        "SELECT name FROM datasets WHERE id = ?",
+                        (dataset_id,),
+                    ).fetchone()
+                if row and row["name"]:
+                    return row["name"]
+            except sqlite3.Error:
+                pass
+
+        return yaml_path.parent.name
+
     def list_dataset_options(self):
         options = []
         export_root = self.root_dir / "annotation_data" / "exports"
@@ -75,9 +103,10 @@ class TrainingService:
             for yaml_path in sorted(export_root.rglob("data.yaml"), reverse=True):
                 options.append(
                     {
-                        "label": yaml_path.parent.name,
+                        "label": self._dataset_label_from_yaml(yaml_path),
                         "path": str(yaml_path.resolve()),
                         "source": "annotation_export",
+                        "export_dir": yaml_path.parent.name,
                     }
                 )
         for yaml_path in sorted((self.root_dir / "data").glob("*.yaml")):
@@ -147,10 +176,14 @@ class TrainingService:
         suffix = f"_{task_name}" if task_name else ""
         return str(Path(f"{base}{next_index}{suffix}").resolve())
 
-    def _resolve_best_last(self, output_dir: str):
+    def _resolve_best_last(self, output_dir: str, task_name: str):
         weights_dir = Path(output_dir) / "weights"
-        best = weights_dir / "best.pt"
-        last = weights_dir / "last.pt"
+        if task_name:
+            best = weights_dir / f"{task_name}_best.pt"
+            last = weights_dir / f"{task_name}_last.pt"
+        else:
+            best = weights_dir / "best.pt"
+            last = weights_dir / "last.pt"
         return str(best), str(last)
 
     def _artifact_paths(self, output_dir: str):
@@ -184,7 +217,7 @@ class TrainingService:
         task_path = self.task_dir / name
         task_path.mkdir(parents=True, exist_ok=True)
         log_file = self.log_dir / f"{name}.log"
-        best_weight, last_weight = self._resolve_best_last(output_dir)
+        best_weight, last_weight = self._resolve_best_last(output_dir, name)
 
         command = [
             sys.executable,
@@ -391,6 +424,37 @@ class TrainingService:
                 WHERE id = ?
                 """,
                 (finished_at, finished_at, "stopped by user", task_id),
-            )
+        )
         self.processes.pop(task_id, None)
         return self.get_task(task_id, refresh=False)
+
+    def delete_task(self, task_id: int):
+        task = self.get_task(task_id, refresh=False)
+        if not task:
+            return None
+
+        if task["status"] == "running":
+            self.stop_task(task_id)
+            task = self.get_task(task_id, refresh=False)
+
+        log_path = Path(task["log_file"])
+        try:
+            if log_path.exists():
+                log_path.unlink()
+        except OSError:
+            pass
+
+        task_folder = self.task_dir / task["name"]
+        try:
+            if task_folder.exists():
+                for child in task_folder.iterdir():
+                    if child.is_file():
+                        child.unlink()
+                task_folder.rmdir()
+        except OSError:
+            pass
+
+        with self.connect() as conn:
+            conn.execute("DELETE FROM training_tasks WHERE id = ?", (task_id,))
+        self.processes.pop(task_id, None)
+        return {"id": task_id, "deleted": True, "name": task["name"]}

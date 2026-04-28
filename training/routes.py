@@ -65,6 +65,14 @@ def stop_task(task_id):
     return ok(task)
 
 
+@training_bp.route("/tasks/<int:task_id>", methods=["DELETE"])
+def delete_task(task_id):
+    payload = get_service().delete_task(task_id)
+    if not payload:
+        return fail("task not found", status=404)
+    return ok(payload)
+
+
 @training_bp.route("/tasks/<int:task_id>/artifacts/<artifact_name>", methods=["GET"])
 def download_artifact(task_id, artifact_name):
     task = get_service().get_task(task_id)

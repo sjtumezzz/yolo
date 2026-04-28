@@ -363,8 +363,13 @@ def train(hyp, opt, device, tb_writer=None):
 
     if rank in [-1, 0]:
         # Strip optimizers
-        n = ('_' if len(opt.name) and not opt.name.isnumeric() else '') + opt.name
-        fresults, flast, fbest = 'results%s.txt' % n, wdir + 'last%s.pt' % n, wdir + 'best%s.pt' % n
+        run_name = (opt.name or '').strip()
+        if run_name:
+            fresults = f'{run_name}_results.txt'
+            flast = wdir + f'{run_name}_last.pt'
+            fbest = wdir + f'{run_name}_best.pt'
+        else:
+            fresults, flast, fbest = 'results.txt', wdir + 'last.pt', wdir + 'best.pt'
         for f1, f2 in zip([wdir + 'last.pt', wdir + 'best.pt', 'results.txt'], [flast, fbest, fresults]):
             if os.path.exists(f1):
                 os.rename(f1, f2)  # rename

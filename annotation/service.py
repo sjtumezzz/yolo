@@ -108,6 +108,12 @@ class AnnotationService:
     def _row_to_dict(self, row):
         return dict(row) if row else None
 
+    def _export_slug(self, dataset: dict) -> str:
+        slug = secure_filename((dataset.get("name") or "").strip())
+        if not slug:
+            slug = f"dataset_{dataset['id']}"
+        return slug
+
     def _dataset_summary(self, conn, dataset_id: int):
         total_images = conn.execute(
             "SELECT COUNT(*) FROM images WHERE dataset_id = ?",
@@ -447,7 +453,8 @@ class AnnotationService:
         if not dataset["classes"]:
             raise ValueError("dataset has no classes")
 
-        export_root = self.export_dir / f"dataset_{dataset_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        export_name = f"{self._export_slug(dataset)}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        export_root = self.export_dir / export_name
         images_root = export_root / "images"
         labels_root = export_root / "labels"
         for split in ("train", "val", "test"):
@@ -520,6 +527,7 @@ class AnnotationService:
                 exported_images[split] += 1
 
         yaml_payload = {
+            "dataset_name": dataset["name"],
             "train": str((images_root / "train").resolve()),
             "val": str((images_root / "val").resolve()),
             "test": str((images_root / "test").resolve()),
@@ -531,6 +539,8 @@ class AnnotationService:
 
         return {
             "dataset_id": dataset_id,
+            "dataset_name": dataset["name"],
+            "export_name": export_name,
             "export_dir": str(export_root),
             "data_yaml": str(export_root / "data.yaml"),
             "exported_images": exported_images,

@@ -24,6 +24,7 @@ const inferenceElements = {
   refreshTasksBtn: document.getElementById("refreshTasksBtn"),
   refreshLogBtn: document.getElementById("refreshLogBtn"),
   stopTaskBtn: document.getElementById("stopTaskBtn"),
+  deleteTaskBtn: document.getElementById("deleteTaskBtn"),
 };
 const API_KEY = document.querySelector('meta[name="api-key"]')?.content || "";
 const inferenceStatusText = {
@@ -106,6 +107,7 @@ function renderTaskDetail(task) {
     inferenceElements.taskDetail.textContent = "请选择一个任务查看详情。";
     inferenceElements.artifactLinks.innerHTML = "";
     inferenceElements.resultPreview.textContent = "请选择一个任务查看结果预览。";
+    inferenceElements.logViewer.textContent = "请选择一个任务查看日志。";
     return;
   }
 
@@ -135,7 +137,7 @@ function renderTaskDetail(task) {
   inferenceElements.artifactLinks.innerHTML = links.join("");
 
   if (task.output_exists) {
-    const outputUrl = `/api/inference/tasks/${task.id}/output`;
+    const outputUrl = `/api/inference/tasks/${task.id}/output/preview`;
     if (task.source_type === "image") {
       inferenceElements.resultPreview.innerHTML = `<img src="${outputUrl}" alt="推理结果">`;
     } else {
@@ -214,6 +216,12 @@ async function refreshSelectedTask() {
   await loadTaskLogs(task.id);
 }
 
+function clearTaskSelection() {
+  inferenceState.selectedTaskId = null;
+  renderTaskList();
+  renderTaskDetail(null);
+}
+
 function startPolling() {
   if (inferenceState.pollTimer) {
     clearInterval(inferenceState.pollTimer);
@@ -257,6 +265,32 @@ inferenceElements.stopTaskBtn.addEventListener("click", async () => {
     renderTaskDetail(task);
     await loadTaskList();
     setInferenceStatus("任务已停止");
+  } catch (error) {
+    setInferenceStatus(error.message, true);
+  }
+});
+
+inferenceElements.deleteTaskBtn.addEventListener("click", async () => {
+  if (!inferenceState.selectedTaskId) {
+    setInferenceStatus("请先选择任务", true);
+    return;
+  }
+
+  const selectedTask = inferenceState.tasks.find((task) => task.id === inferenceState.selectedTaskId);
+  const confirmed = window.confirm(
+    `确认删除推理记录“${selectedTask?.name || inferenceState.selectedTaskId}”吗？\n这会删除该任务的记录、日志和推理输出文件。`,
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await inferenceRequest(`/api/inference/tasks/${inferenceState.selectedTaskId}`, {
+      method: "DELETE",
+    });
+    clearTaskSelection();
+    await loadTaskList();
+    setInferenceStatus("推理记录已删除");
   } catch (error) {
     setInferenceStatus(error.message, true);
   }

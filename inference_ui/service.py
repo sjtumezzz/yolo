@@ -320,6 +320,39 @@ class InferenceService:
                 WHERE id = ?
                 """,
                 (finished_at, finished_at, "stopped by user", task_id),
-            )
+        )
         self.processes.pop(task_id, None)
         return self.get_task(task_id, refresh=False)
+
+    def delete_task(self, task_id: int):
+        task = self.get_task(task_id, refresh=False)
+        if not task:
+            return None
+
+        if task["status"] == "running":
+            self.stop_task(task_id)
+            task = self.get_task(task_id, refresh=False)
+
+        cleanup_paths = [
+            Path(task["source_path"]),
+            Path(task["output_path"]),
+            Path(task["log_file"]),
+        ]
+        for cleanup_path in cleanup_paths:
+            try:
+                if cleanup_path.exists():
+                    cleanup_path.unlink()
+            except OSError:
+                pass
+
+        for folder in [Path(task["output_dir"]), self.task_dir / task["name"]]:
+            try:
+                if folder.exists():
+                    shutil.rmtree(folder)
+            except OSError:
+                pass
+
+        with self.connect() as conn:
+            conn.execute("DELETE FROM inference_tasks WHERE id = ?", (task_id,))
+        self.processes.pop(task_id, None)
+        return {"id": task_id, "deleted": True, "name": task["name"]}
