@@ -155,6 +155,14 @@ Run GPU backend with:
 
 For the fixed backend container contract, see `DOCKER_BACKEND.md`.
 
+Useful deployment scripts:
+
+```text
+scripts/preflight_check.ps1
+scripts/init_delivery_root.ps1
+scripts/prepare_release_bundle.ps1
+```
+
 ## Desktop Exe
 
 The desktop shell is in:
@@ -178,6 +186,15 @@ npm.cmd run dist
 ```
 
 For the desktop shell contract, see `DESKTOP_APP.md`.
+
+## Handoff
+
+For teammate handoff and company-side deployment guidance, see:
+
+```text
+HANDOFF_GUIDE.md
+PACKAGING.md
+```
 
 ## Notes
 
